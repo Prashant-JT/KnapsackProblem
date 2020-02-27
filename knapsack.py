@@ -87,22 +87,26 @@ if __name__ == "__main__":
                 break
             return ant, act, root
     
-    def reverseTree(ant, act):
+    def reverseTree(ant, act, res):
         i = len(items) - 1
-        while (True):
-            if ant == root: break
+        while (ant != root):
             if ant.right == None:
                 ant1, act1, root1 = searchChild(act, ant, i)
-                res = act1
-                i = len(items) - 1
+                if act1.value > res.value: res = act1
+                #i = len(items) - 1
             ant = ant.root
             act = act.root
             i -= 1
+            #if i == 0:
+            #    if root.right == None:
+            #        if res.value > root.estimate - items[i].value: break
+            #        i = len(items) - 1
         return ant, act
 
     ant, act, root = searchChild(act, ant, 0)
     res = act
     
-    a, s = reverseTree(ant, act)
+    a, s = reverseTree(ant, act, res)
 
     print(root.PrintTree())
+    print(res.value, res.estimate)
