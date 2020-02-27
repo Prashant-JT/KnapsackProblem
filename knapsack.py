@@ -75,15 +75,16 @@ if __name__ == "__main__":
                 act = ant.right
                 ant = act.root
             for i in range(pos + 1, len(items)):
-                if res.value < ant.estimate - items[i].value:
-                    if ant.room - items[i].weight >= 0:
-                        ant.insert(act.value + items[i].value, act.room - items[i].weight, act.estimate)
+                if res.value < act.estimate:
+                    if act.room - items[i].weight >= 0:
+                        act.insert(act.value + items[i].value, act.room - items[i].weight, act.estimate)
                         act = ant.left
                         ant = act.root
-                    else:
-                        ant.insert(act.value, act.room, act.estimate - items[i].value)
+                    elif res.value < act.estimate - items[i].value:
+                        act.insert(act.value, act.room, act.estimate - items[i].value)
                         act = ant.right
                         ant = act.root
+                break
             return ant, act, root
     
     def reverseTree(ant, act):
@@ -92,7 +93,7 @@ if __name__ == "__main__":
             if ant == root: break
             if ant.right == None:
                 ant1, act1, root1 = searchChild(act, ant, i)
-                res2 = act1
+                res = act1
                 i = len(items) - 1
             ant = ant.root
             act = act.root
@@ -103,20 +104,5 @@ if __name__ == "__main__":
     res = act
     
     a, s = reverseTree(ant, act)
-    
-    """ant = ant.root
-    act = act.root
-    del(root)
-    i = len(items) - 1
-
-    while (act.right != None):
-        ant = ant.root
-        act = act.root
-        i -= 1
-    
-    res2 = completeTree(res, act, i)
-    print(ant.value, ant.estimate)
-    print(act.value, act.estimate)
-    print(i)"""
 
     print(root.PrintTree())
