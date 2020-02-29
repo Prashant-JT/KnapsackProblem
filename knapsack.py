@@ -1,112 +1,116 @@
-import numpy
 from collections import namedtuple
+import csv
+import os
+Item = namedtuple("Item", ['index', 'value', 'weight'])
 
+# El método te devuelve la lista de items rellena, item_count y capacity
 def insertItems():
-    # Este es el ejemplo del fichero ks_4
-    Item = namedtuple("Item", ['index', 'value', 'weight'])
     items = []
-    items.append(Item(0, 8, 4))
-    items.append(Item(1, 10, 5))
-    items.append(Item(2, 15, 8))
-    items.append(Item(3, 4, 3))
-    return items
+    item_count = 0
+    capacity = 0
+    bound = 0
+
+    # Imprime el/los ficheros de la carpeta
+    for dirname, _, filenames in os.walk('data'):
+        for filename in filenames:
+            print(os.path.join(dirname, filename))
+    
+    # Abre el primer fichero (debe haber una carpeta llamada "data" en el cual puede poner el fichero que quiere leer)
+    # la carpeta data debe estar en el mismo directorio en el cual se encuentra este proyecto 
+    for dirname, _, filenames in os.walk('data'):
+        for filename in filenames:
+            full_name = dirname+'/'+filename
+            with open(full_name, 'r') as input_data_file:
+                input_data = input_data_file.read()
+
+
+                lines = input_data.split('\n')
+
+                firstLine = lines[0].split()
+                item_count = int(firstLine[0])
+                capacity = int(firstLine[1])
+                
+                j = 1
+                for i in range(1, item_count+1): 
+                    line = lines[i]
+                    parts = line.split()
+                    if int(parts[1]) <= capacity:            
+                        items.append(Item(j-1,int(parts[0]), int(parts[1])))
+                        bound += int(parts[0])
+                        j = j+1
+                item_count = len(items)
+                break
+    return items, item_count, capacity
+
 
 class Node:
 
-    def __init__(self, value, capacity, bound):
-        self.root = None
-        self.left = None
+    def __init__(self, root, eValue, eWeight, bound):
+        self.father = root
         self.right = None
-        self.value = value
-        self.room = capacity
+        self.left = None
+        self.value = eValue
+        self.weight = eWeight
         self.estimate = bound
 
     def insert(self, newValue, newRoom, newEstimate):
-        newNode = Node(newValue, newRoom, newEstimate)
-        newNode.root = self
+        newNode = Node(self, newValue, newRoom, newEstimate)
         if newNode.estimate < self.estimate:
-            if self.right is None:
-                self.right = newNode
-            else:
-                self.right.insert(newNode.value, newNode.room, newNode.estimate)
+            self.right = newNode
         elif newNode.estimate == self.estimate:
-            if self.left is None:
-                self.left = newNode
-            else:
-                self.left.insert(newNode.value, newNode.room, newNode.estimate)  
+            self.left = newNode
 
-# Print tree
-    def PrintTree(self):
+    def printTree(self):
         if self.left:
-            self.left.PrintTree()
-        print([self.value, self.room, self.estimate]),
+            self.left.printTree()
+        print([self.value, self.weight, self.estimate]),
         if self.right:
-            self.right.PrintTree()
+            self.right.printTree()
 
 if __name__ == "__main__":
-    #Inserta los items y crea el taken
-    items = insertItems()
-    taken = [0]*11
-    
-    #Calcula la informacion del nodo raiz y la crea: VALUE ROOM ESTIMATE
+    items, item_count, capacity = insertItems()
+    taken = [0]*len(items)
     estimate = 0
     for i in items:
         estimate += i.value
-    act = Node(0, 11, estimate)
-    ant = None
-    res = None
-    root = act
     
-    def searchChild(act, ant, pos):
-        if res == None:
-            for item in items:
-                if act.room - item.weight >= 0:
-                    act.insert(act.value + item.value, act.room - item.weight, act.estimate)
-                    ant = act
-                    act = ant.left
-                else:
-                    act.insert(act.value, act.room, act.estimate - item.value)
-                    ant = act
-                    act = ant.right
-            return ant, act, root
+    root = Node(None, 0, capacity, estimate)
+    act = root
+    i = 0
+    result = Node(None, 0, 0, 0)
+    
+    while root.left is None or root.right is None or act.father is not None:
+        if act.left is None and act.weight - items[i].weight >= 0:
+            act.insert(act.value + items[i].value, act.weight - items[i].weight, act.estimate)
+            ant = act
+            act = act.left
         else:
-            if res.value < ant.estimate - items[pos].value:
-                ant.insert(ant.value, ant.room, ant.estimate - items[pos].value)
-                act = ant.right
-                ant = act.root
-            for i in range(pos + 1, len(items)):
-                if res.value < act.estimate:
-                    if act.room - items[i].weight >= 0:
-                        act.insert(act.value + items[i].value, act.room - items[i].weight, act.estimate)
-                        act = ant.left
-                        ant = act.root
-                    elif res.value < act.estimate - items[i].value:
-                        act.insert(act.value, act.room, act.estimate - items[i].value)
-                        act = ant.right
-                        ant = act.root
-                break
-            return ant, act, root
-    
-    def reverseTree(ant, act, res):
-        i = len(items) - 1
-        while (ant != root):
-            if ant.right == None:
-                ant1, act1, root1 = searchChild(act, ant, i)
-                if act1.value > res.value: res = act1
-                #i = len(items) - 1
-            ant = ant.root
-            act = act.root
+            act.insert(act.value, act.weight, act.estimate - items[i].value)
+            ant = act
+            act = act.right
+        i += 1
+
+        if act.estimate < result.estimate or i == len(items):
+            if act.estimate > result.estimate:
+                result = act
             i -= 1
-            #if i == 0:
-            #    if root.right == None:
-            #        if res.value > root.estimate - items[i].value: break
-            #        i = len(items) - 1
-        return ant, act
+            while ant.right is not None and ant.father is not None:
+                act = ant
+                ant = act.father
+                i -= 1
+            act = ant
+            ant = act.father
 
-    ant, act, root = searchChild(act, ant, 0)
-    res = act
-    
-    a, s = reverseTree(ant, act, res)
+    #print(root.printTree())
 
-    print(root.PrintTree())
-    print(res.value, res.estimate)
+    i = len(items) - 1
+    aux = result.father
+    while(aux != None):
+        if aux.value != aux.value:
+            taken[i] = 1
+        else:
+            taken[i] = 0
+        result = result.father
+        aux = aux.father
+        i -= 1
+    print("taken vector: ", taken)
