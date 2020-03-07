@@ -97,30 +97,24 @@ def greedy(items, capacity):
         return valueGreedy, takenGreedyW
 
 
-def valueWeight(it):
-    return it.value / it.weight
-
-
 def process(sortedItems, capacityI):
-    items = sortedItems.copy()
-    sortedItems.sort(reverse=True, key=valueWeight)
+    items1 = sortedItems.copy()
+    items1.sort(reverse=True, key=valuesWeight)
+
+    sortedItems.sort(reverse=True, key=valuesWeight)
     taken = [0] * len(sortedItems)
 
     estimate = 0
     weights = 0
 
     for x in sortedItems:
-        if weights == capacityI:
-            break
         if weights + x.weight <= capacityI:
             estimate += x.value
             weights += x.weight
         else:
             res = capacityI - weights
-            weights = capacityI
             estimate += (res * x.value) / x.weight
-    del(sortedItems)
-    gc.collect()
+            break
     root = Node(None, 0, capacityI, estimate)
     act = root
     i = 0
@@ -128,34 +122,33 @@ def process(sortedItems, capacityI):
     result = Node(None, 0, 0, 0)
 
     start = time.time()
-    while root.left is None or root.right is None or act.father is not None:
-        if items[i].value <= 0:
-            i += 1
-            continue
-        if act.left is None and act.weight - items[i].weight >= 0:
-            act.insert(act.value + items[i].value, act.weight - items[i].weight, act.estimate)
+    while root.right is None or act.father is not None:
+        if act.left is None and act.weight - items1[i].weight >= 0:
+            act.insert(act.value + items1[i].value, act.weight - items1[i].weight, act.estimate)
             ant = act
             act = act.left
         else:
-            act.insert(act.value, act.weight, act.estimate - items[i].value)
+            act.insert(act.value, act.weight, act.estimate - items1[i].value)
             ant = act
             act = ant.right
         i += 1
         end = time.time()
 
-        if end - start > 30:
-            result.value, taken = greedy(items, capacity)
-            print("GREEDY")
-            print(result.value)
-            root.right = None
+        if end - start >= 15:
             root.left = None
+            root.right = None
             gc.collect()
+            valueG, takenG = greedy(sortedItems, capacity)
+            print("GREDDY", item_count)
+            print(valueG)
             break
 
-        if act.estimate < result.estimate or i == len(items):
+        if act.estimate < result.estimate and act.weight < items1[i-1].weight or i == len(items):
+            i -= 1
+
             if act.value > result.value:
                 result = act
-            i -= 1
+
             while ant.right is not None and ant.father is not None:
                 act = ant
                 ant = act.father
@@ -163,7 +156,7 @@ def process(sortedItems, capacityI):
             act = act.father
 
     if root.right is not None and root.left is not None:
-        print("BAB")
+        print("BAB", item_count)
         print(result.value)
         i = len(items) - 1
         aux = result.father
@@ -205,7 +198,7 @@ if __name__ == "__main__":
                 for i in range(1, item_count + 1):
                     line = lines[i]
                     parts = line.split()
-                    if int(parts[1]) <= capacity:
+                    if int(parts[1]) <= capacity and int(parts[0]) > 0:
                         items.append(Item(j - 1, int(parts[0]), int(parts[1])))
                         bound += int(parts[0])
                         j = j + 1
