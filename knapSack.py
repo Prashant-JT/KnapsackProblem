@@ -97,6 +97,21 @@ def greedy(items, capacity):
         return valueGreedy, takenGreedyW
 
 
+def check_solution(capacity, items, taken):
+    weight = 0
+    value = 0
+    x = 0
+    for item in items:
+        if taken[x]== 1:
+            weight += item.weight
+            value += item.value
+            x += 1
+    if weight> capacity:
+        print("solución incorrecta, se supera la capacidad de la mochila (capacity, weight):", capacity, weight)
+        return 0
+    return value
+
+
 def process(sortedItems, capacityI):
     sortedItems.sort(reverse=True, key=valuesWeight)
     taken = [0] * len(sortedItems)
@@ -156,15 +171,15 @@ def process(sortedItems, capacityI):
         i = len(items) - 1
         aux = result.father
         while aux is not None:
-            if aux.value != result.value:
+            if aux.estimate == result.estimate:
                 taken[i] = 1
             else:
                 taken[i] = 0
             result = result.father
             aux = aux.father
             i -= 1
-    print(sortedItems)
-    print(taken)
+
+    a = check_solution(capacityI, sortedItems, taken)
 
 
 if __name__ == "__main__":
