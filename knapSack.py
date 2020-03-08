@@ -98,9 +98,6 @@ def greedy(items, capacity):
 
 
 def process(sortedItems, capacityI):
-    items1 = sortedItems.copy()
-    items1.sort(reverse=True, key=valuesWeight)
-
     sortedItems.sort(reverse=True, key=valuesWeight)
     taken = [0] * len(sortedItems)
 
@@ -123,31 +120,30 @@ def process(sortedItems, capacityI):
 
     start = time.time()
     while root.right is None or act.father is not None:
-        if act.left is None and act.weight - items1[i].weight >= 0:
-            act.insert(act.value + items1[i].value, act.weight - items1[i].weight, act.estimate)
+        if act.left is None and act.weight - sortedItems[i].weight >= 0:
+            act.insert(act.value + sortedItems[i].value, act.weight - sortedItems[i].weight, act.estimate)
             ant = act
             act = act.left
         else:
-            act.insert(act.value, act.weight, act.estimate - items1[i].value)
+            act.insert(act.value, act.weight, act.estimate - sortedItems[i].value)
             ant = act
             act = ant.right
         i += 1
         end = time.time()
 
-        if end - start >= 15:
-            root.left = None
+        if end - start >= 30:
             root.right = None
+            root.left = None
             gc.collect()
-            valueG, takenG = greedy(sortedItems, capacity)
-            print("GREDDY", item_count)
-            print(valueG)
+            valueG, takenG = greedy(sortedItems, capacityI)
+            print("GREEDY", valueG)
             break
 
-        if act.estimate < result.estimate and act.weight < items1[i-1].weight or i == len(items):
-            i -= 1
+        if act.value > result.value:
+            result = act
 
-            if act.value > result.value:
-                result = act
+        if i == len(items) or ant.estimate > result.estimate:
+            i -= 1
 
             while ant.right is not None and ant.father is not None:
                 act = ant
@@ -156,7 +152,6 @@ def process(sortedItems, capacityI):
             act = act.father
 
     if root.right is not None and root.left is not None:
-        print("BAB", item_count)
         print(result.value)
         i = len(items) - 1
         aux = result.father
@@ -168,6 +163,8 @@ def process(sortedItems, capacityI):
             result = result.father
             aux = aux.father
             i -= 1
+    print(sortedItems)
+    print(taken)
 
 
 if __name__ == "__main__":
