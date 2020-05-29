@@ -14,18 +14,6 @@ def submission_generation(filename, str_output):
     return FileLink(filename)
 
 
-def values(it):
-    return it.value
-
-
-def weights(it):
-    return it.weight
-
-
-def valuesWeight(it):
-    return it.value / it.weight
-
-
 def check_solution(capacity, items, taken):
     weight = 0
     value = 0
@@ -57,14 +45,9 @@ def auxiliar(sortedItems, capacityI):
 
     m.setObjective(x1.prod(valoresDict), GRB.MAXIMIZE)
 
-    # Limit how many solutions to collect
     m.setParam(GRB.Param.PoolSolutions, 2048)
-    # Limit the search space by setting a gap for the worst possible solution
-    # that will be accepted
     m.setParam(GRB.Param.PoolGap, 0.01)
-
     m.setParam(GRB.Param.PoolSearchMode, 1)
-
     m.setParam(GRB.Param.TimeLimit, 10.0)
 
     m.optimize()
@@ -78,39 +61,19 @@ def auxiliar(sortedItems, capacityI):
 
 def process(sortedItems, capacityI):
 
-    maximos = []
-    takens = []
+    sortedItems.sort(key=lambda x: x.value/x.weight)
+    taken = auxiliar(sortedItems, capacityI)
 
-    itVW = sortedItems.copy()
-    itVW.sort(reverse=True, key=valuesWeight)
-    takens.append(auxiliar(itVW, capacityI))
+    maximo = check_solution(capacityI, sortedItems, taken)
 
-    maximos.append(check_solution(capacityI, itVW, takens[0]))
-
-    itV = sortedItems.copy()
-    itV.sort(reverse=True, key=values)
-    takens.append(auxiliar(itV, capacityI))
-
-    maximos.append(check_solution(capacityI, itV, takens[1]))
-
-    itW = sortedItems.copy()
-    itW.sort(key=weights)
-    takens.append(auxiliar(itW, capacityI))
-
-    maximos.append(check_solution(capacityI, itW, takens[2]))
-
-    ind = maximos.index(max(maximos))
-
-    print(maximos)
-
-    if sum(maximos) == 0:
+    if maximo == 0:
         exit(1)
 
     # prepare the solution in the specified output format
-    output_data = '%.2f' % maximos[ind] + ' ' + str(0) + '\n'
-    output_data += ' '.join(map(str, takens[ind]))
+    output_data = '%.2f' % maximo + ' ' + str(0) + '\n'
+    output_data += ' '.join(map(str, taken))
 
-    return output_data, maximos[ind]
+    return output_data, maximo
 
 
 if __name__ == "__main__":
