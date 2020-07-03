@@ -3,3 +3,5 @@ In algorithmics, the knapsack problem, commonly abbreviated by KP (from the Engl
 
 ## Files format
 Each file contains n + 1 rows. The first row contains two integers, the first is the number of items and the second is the capacity of the knapsack, K. From the second row onwards it contains the data for each of the objects (value, weight)
+
+For more information (in Spanish): [PDF format](https://github.com/Prashant-JT/KnapsackProblem/blob/master/knapsack.pdf) or in [Jupyter format](https://github.com/Prashant-JT/KnapsackProblem/blob/master/knapsack.ipynb).
